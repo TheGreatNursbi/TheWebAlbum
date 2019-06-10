@@ -1,0 +1,137 @@
+﻿@model Attempt2.ViewModels.UserViewModel
+
+<body>
+    @if (User.Identity.Name == Model.AppUser.UserName)
+    {
+        <br /><br />
+        using (Html.BeginForm("GetImagesOfUser", "Home", FormMethod.Get))
+        {
+            @Html.TextBox("searchString")<button type="submit" value="Search"><span class="glyphicon glyphicon-search" /></button>
+        }
+        <table id="ImageTable" class="table table-hover" style="position:absolute; margin-top: 30px; left: 35%; transform: translate(-50%m -50%); width:600px; height:700px;">
+            <caption>Images</caption>
+            <tbody>
+                @if (Model.Images.Count() == 0)
+                {
+                    <tr>
+                        <td colspan="3" style="color:red">
+                            No Match Any Document
+                        </td>
+                    </tr>
+                }
+                else
+                {
+
+                    foreach (var i in Model.Images)
+                    {
+                        <tr>
+                            <th>
+                                <div class="card" style="width: 18rem;">
+                                    <img src="@Url.Content(i.Path)" class="card-img-top" alt="Fuck It" style="width:578px; height:650px;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@i.User.UserName</h5>
+                                        <p class="card-text" style="text-align: center; transform: translate(-50%m -50%); position:absolute;">@i.Summary</p>
+                                    </div>
+                                    <br />
+                                    <br />
+                                    <br />
+                                    <div class="card-body">
+                                        @if (i.Likes.Any(x => x.UserId == Model.AppUser.Id && x.ImageId == i.Id))
+                                        {
+                                            <button type="button" class="btn btn-default unlike" data-id="@i.Id"><span class="glyphicon glyphicon-heart text-danger" /></button><b data-likes="@i.NumberOfLikes">@i.NumberOfLikes</b>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-default like" data-id="@i.Id"><span class="glyphicon glyphicon-heart" /></button><b data-likes="@i.NumberOfLikes">@i.NumberOfLikes</b>
+                                        }
+
+                                        <button id="commentButton" type="button" class="btn btn-default" data-commentId="@i.Id"><b>Comments</b></button><b>@i.Comments.Count</b>
+                                        @Html.Hidden("imgId", i.Id)
+                                        <bytton id="delete" data-id="@i.Id" class="btn btn-default text-danger" style="position:absolute; left: 90%; transform: translate(-50%m -50%);">
+                                            <span class="glyphicon glyphicon-trash text-danger" />
+                                        </bytton>
+                                        <a href="@Url.Action("Edit", "Home", new { id = i.Id })" class="btn btn-default " style="position:absolute; left: 83%; transform: translate(-50%m -50%);">
+                                            <span class="glyphicon glyphicon-edit" />
+                                        </a>
+                                        <a href="@Url.Action("Download", "Home", new { path = i.Path })" id="upload" class="btn btn-default " style="position:absolute; left: 76%; transform: translate(-50%m -50%);">
+                                            <span class="glyphicon glyphicon-save" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </th>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <h1 style="font-style: oblique;">
+            Sorry!
+        </h1>
+    }
+    </body>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            //LIKE
+           $(document).on("click", "button.like", function () {
+               var id = $(this).data("id");
+            var link = "/Home/LikeThis/" + id;
+            //Choose all a tags with this class and this ID
+            var button = $("button[class$='like'][data-id$='"+id+"']");
+            $.ajax({
+                type: "GET",
+                url: link,
+                success: function () {
+                    button.html('<span class="glyphicon glyphicon-heart text-danger"/>').removeClass("like").addClass("unlike");
+                }
+            });
+        });
+            //UNLIKE
+            $(document).on("click", "button.unlike", function () {
+                var id = $(this).data("id");
+                var link = "/Home/UnLikeThis/" + id;
+                var button1 = $("button[class$='unlike'][data-id$='" + id + "']");
+                $.ajax({
+                    type: "GET",
+                    url: link,
+                    success: function () {
+                        button1.html('<span class="glyphicon glyphicon-heart"/>').removeClass("unlike").addClass("like");
+                    }
+                });
+            });
+
+            $("th #commentButton").on("click", function () {
+                var com = $(this).attr("data-commentId");
+                location.href = "/Home/Comment/"+com;
+            });
+
+
+
+
+            $(document).delegate("#delete", "click", function (e) {
+                e.preventDefault();
+                var $ctrl = $(this);
+                if (confirm('Do you really want to Delete?')) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteFile", "Home")',
+                        type: "POST",
+                        ajaxasync: true,
+                        data: { id: $("#imgId").val() },
+                        success: function () {
+                            alert("Succes, deleted!");
+                            $ctrl.parent("th").remove();
+                            location.href = "/Home/Index/"
+                        },
+                        error: function () {
+                            alert("Something went wrong, Try Again!");
+                        }
+                    });
+                };
+            });
+        });
+    </script>
+}

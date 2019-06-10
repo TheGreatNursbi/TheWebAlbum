@@ -1,0 +1,30 @@
+﻿@model Attempt2.Models.Image
+@{
+    Layout = "~/Views/Shared/UserNavBar.cshtml";
+}
+
+<body>
+    <div class="card" style="width: 18rem; position:absolute; margin-top: 42px; left: 42%; transform: translate(-50%m -50%); width:380px; height:400px;">
+        <img src="@Url.Content(Model.Path)" class="card-img-top" alt="Fuck It" style="width:378px; height:450px;">
+        <div class="card-body">
+            <h5 class="card-title">@Model.User.UserName</h5>
+            <p class="card-text" style="text-align: center; ">@Model.Summary</p>
+        </div>
+        <br />
+        <br />
+        <div class="card-body">
+            <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-heart-empty" />@Model.NumberOfLikes</button>
+        </div>
+        <br>
+        <div class="container" style=" width:380px; height:400px;">
+            <ul id="discussion" class="list-group">
+                @foreach (var comment in Model.Comments)
+                {
+                    <li class="list-group-item">
+                        <strong>@comment.UserName :&nbsp;</strong><span>@comment.Summary</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</body>

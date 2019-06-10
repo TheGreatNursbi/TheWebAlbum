@@ -1,0 +1,64 @@
+﻿@model IEnumerable<Attempt2.Models.Image>
+@{ 
+    Layout = "~/Views/Shared/UserNavbar.cshtml";
+}
+
+<body>
+    <br /><br />
+    @using (Html.BeginForm("Index", "Home", FormMethod.Get))
+    {
+        @Html.TextBox("searchString")<button type="submit" value="Search"><span class="glyphicon glyphicon-search" /></button>
+    }
+    <table id="ImageTable" class="table table-hover" style="position:absolute; margin-top: 30px; left: 35%; transform: translate(-50%m -50%); width:600px; height:700px;">
+        <caption>Images</caption>
+        <tbody>
+            @if (Model.Count() == 0)
+            {
+                <tr>
+                    <td colspan="3" style="color:red">
+                        <h2>No Match Any Document</h2>
+                    </td>
+                </tr>
+            }
+            else
+            {
+
+                foreach (var i in Model)
+                {
+                    <tr>
+                        <th>
+                            <div class="card" style="width: 18rem;">
+                                <img src="@Url.Content(i.Path)" class="card-img-top" alt="Fuck It" style="width:578px; height:650px;">
+                                <div class="card-body">
+                                    <h5 class="card-title">@i.User.UserName</h5>
+                                    <p class="card-text" style="text-align: center; transform: translate(-50%m -50%); position:absolute;">@i.Summary</p>
+                                </div>
+                                <br />
+                                <br />
+                                <br />
+                                <div class="card-body">
+                                    <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-heart-empty" />@i.NumberOfLikes</button>
+                                    <button id="commentButton" type="button" class="btn btn-default" data-commentId="@i.Id"><b>Comments</b></button><b>@i.Comments.Count</b>
+                                    <a href="@Url.Action("UserDownload", "User", new { path = i.Path })" id="upload" class="btn btn-default " style="position:absolute; left: 92%; transform: translate(-50%m -50%);">
+                                        <span class="glyphicon glyphicon-save" />
+                                    </a>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</body>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $("th #commentButton").on("click", function () {
+                var com = $(this).attr("data-commentId");
+                location.href = "/User/UserComment/"+com;
+            });
+        });
+    </script>
+}

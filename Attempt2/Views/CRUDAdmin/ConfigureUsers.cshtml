@@ -1,0 +1,217 @@
+﻿
+@{
+    ViewBag.Title = "ConfigureUsers";
+    Layout = "~/Views/Shared/AdminNavbar.cshtml";
+}
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6">
+                <h2>Information about Users</h2>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <table id="userTable"
+                   class="table table-bordered
+                 table-condensed table-striped">
+                <thead id="staticParent">
+                    <tr>
+                        <th>Id</th>
+                        <th>User mail</th>
+                        @*<th>Number Of Images</th>
+                        <th>Number Of Likes</th>
+                        <th>Number of Comments</th>*@  
+                        <th>Delete</th>
+                        @*<th>Details</th>*@
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    @*<div class="row">
+        <div class="col-sm-6">
+            <button type="button" id="addButton"
+                    class="btn btn-primary"
+                    onclick="addClick();">
+                Add User
+            </button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    User Information
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="UserMail">
+                            Mail
+                        </label>
+                        <input type="text" id="UserMail"
+                               class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Password">
+                            Password
+                        </label>
+                        <input type="password" id="Password"
+                               class="form-control" />
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <button type="button" id="updateButton"
+                                    class="btn btn-primary"
+                                    onclick="updateClick();">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="dialog" title="Dialog Title">I'm a dialog</div>*@
+</body>
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+            userList();
+        })
+
+        function userList() {
+            //Call WebApi to get a list of Product
+            $.ajax({
+                url: '/api/admin/',
+                type: 'GET',
+                dataType: 'json',
+                success: function (users) {
+                    userListSuccess(users);
+                },
+                error: function (request, message, error) {
+                    handleException(users);
+                }
+
+            });
+        }
+
+        function userListSuccess(users) {
+            //Iterate over the collection of data
+            $.each(users, function (index, user) {
+                //Add a row to the  User table
+                userAddRow(user);
+            });
+        }
+
+        //The userAddRow function called from within the iterator
+        //is responsible for building a new row to add to the HTML table.
+        function userAddRow(user) {
+            //Check if <tbody> tag exists, add one if not
+            if ($("#userTable tbody").length == 0) {
+                $("#userTable").append("<tbody></tbody>");
+            }
+
+            //Append row to <tbody>
+            $("#userTable tbody").append(
+                userBuildTableRow(user));
+        }
+
+        function userBuildTableRow(user) {
+            var ret =
+                "<tr id='theGeneratedElement'>" +
+                "<td id='rmov'>" + user.id + "</td>" +
+                "<td>" + user.userName + "</td>" +
+                //"<td>" + user.Images.Count + "</td>" +
+                //"<td>" + user.Likes.Count + "</td>" +
+                //"<td>" + user.Comments.Count + "</td>" +
+                "<td>" +
+                "<button type='button' " +
+                "onclick='userDelete(this);' " +
+                "class='btn btn-default' " +
+                "data-id='" + user.id + "'>" +
+                "<span class='glyphicon glyphicon-remove' />" +
+                "</button>" +
+                "</td>" +
+                "<td>" +
+                //"<button type='button' id='opener'" +
+                //"onclick='userDetails(this);' " +
+                //"class='btn btn-default' " +
+                //"data-id='" + user.id + "'>" +
+                //"<span class='glyphicon glyphicon-user' />" +
+                //"</button>" +
+                //"</td>" +
+                "</tr>";
+            return ret;
+        }
+
+        //Deletes the User
+        function userDelete(ctl) {
+            var id = $(ctl).data("id");
+
+            $.ajax({
+                url: "/api/admin/" + id,
+                type: 'DELETE',
+                success: function (user) {
+                    $(ctl).parents("tr").remove();
+                },
+                error: function (request, message, error) {
+                    handleException(request, message, error);
+                }
+            });
+        }
+
+        function userDetails(ctl) {
+            var id = $(ctl).data("id");
+
+            $.ajax({
+                url: "/api/admin/" + id,
+                type: 'GET',
+                success: function (user) {
+                    $("#dialog").dialog({
+                        autoOpen: false
+                    });
+                    $("#opener").click(function () {
+                        $("#dialog").dialog("open");
+                    });
+                },
+                error: function (request, message, error) {
+                    handleException(request, message, error);
+                }
+            });
+        }
+
+        function handleException(request, message, error) {
+            var msg = "";
+            msg += "Code: " + request.status + "\n";
+            msg += "Text: " + request.statusText + "\n";
+
+            if (request.responseJSON != null) {
+                msg += "Message " + request.responseJSON.Message + "\n";
+            }
+            alert(msg);
+        }
+        $(document).on('event', '#staticParent', function () {
+            if ($("#rmov").val() == "f668eebb-9f35-4d08-8d45-d338917ec8be") {
+                $("#rmov").closest("#theGeneratedElement").remove();
+            }
+        });
+
+        // Handle click event on Update button
+        function updateClick() {
+        }
+        // Handle click event on Add button
+        function addClick() {
+        }
+    </script>
+}
+
+
+

@@ -1,0 +1,119 @@
+﻿@model Attempt2.ViewModels.ImageViewModel
+@{
+    ViewBag.Title = "Comment";
+}
+
+<body>
+    @if (User.Identity.IsAuthenticated)
+    {
+    <div class="card" style="width: 18rem; position:absolute; margin-top: 42px; left: 42%; transform: translate(-50%m -50%); width:380px; height:400px;">
+        <img src="@Url.Content(Model.Image.Path)" class="card-img-top" alt="Fuck It" style="width:378px; height:450px;">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Image.User.UserName</h5>
+            <p class="card-text" style="text-align: center; ">@Model.Image.Summary</p>
+        </div>
+        <br />
+        <br />
+        <div class="card-body">
+            @if (User.Identity.IsAuthenticated)
+            {
+                if (Model.Image.Likes.Any(x => x.UserId == ViewBag.CurrentId && x.ImageId == Model.Image.Id))
+                {
+                    <button type="button" class="btn btn-default unlike" data-id="@Model.Image.Id"><span class="glyphicon glyphicon-heart text-danger" /></button><b data-likes="@Model.Image.NumberOfLikes">@Model.Image.NumberOfLikes</b>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-default like" data-id="@Model.Image.Id"><span class="glyphicon glyphicon-heart" /></button><b data-likes="@Model.Image.NumberOfLikes">@Model.Image.NumberOfLikes</b>
+                }
+            }
+            else
+            {
+                <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-heart-empty" />@Model.Image.NumberOfLikes</button>
+            }
+        </div>
+        <br>
+        <div class="container" style=" width:380px; height:400px;">
+            @Html.Hidden("user", Model.AppUser.Id)
+            @Html.Hidden("image", Model.Image.Id)
+            @Html.Hidden("name", Model.AppUser.UserName)
+            <form id="form">
+                <input class="val" type="text" id="message" style="width:380px" placeholder="Add a comment" required/>
+                <input type="button" id="sendmessage" value="Send" class="btn btn-default" />
+            </form><br />
+            <ul id="discussion" class="list-group">
+                @foreach (var comment in Model.Image.Comments)
+                {
+                    <li class="list-group-item">
+                        <strong>@comment.UserName :&nbsp;</strong><span>@comment.Summary</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+    }
+</body>
+@section scripts {
+<script src="~/Scripts/jquery.signalR-2.4.1.min.js"></script>
+<script src="~/signalr/hubs"></script>
+<script>
+    $(document).ready(function () {
+
+        //LIKE
+        $(document).on("click", "button.like", function () {
+            var id = $(this).data("id");
+            var link = "/Home/LikeThis/" + id;
+            //Choose all a tags with this class and this ID
+            var button = $("button[class$='like'][data-id$='" + id + "']");
+            $.ajax({
+                type: "GET",
+                url: link,
+                success: function () {
+                    button.html('<span class="glyphicon glyphicon-heart text-danger"/>').removeClass("like").addClass("unlike");
+                }
+            });
+        });
+        //UNLIKE
+        $(document).on("click", "button.unlike", function () {
+            var id = $(this).data("id");
+            var link = "/Home/UnLikeThis/" + id;
+            var button1 = $("button[class$='unlike'][data-id$='" + id + "']");
+            $.ajax({
+                type: "GET",
+                url: link,
+                success: function () {
+                    button1.html('<span class="glyphicon glyphicon-heart"/>').removeClass("unlike").addClass("like");
+                }
+            });
+        });
+
+        jQuery(document).ready(function () {
+            $('input').prop('required', true);
+        }); 
+        //For Commenting
+        $(function () {
+            var chat = $.connection.commentHub;//connect to hub
+
+            chat.client.addNewCommentToPage = function (userName, summary, date) {
+
+                $('#discussion').append('<li class="list-group-item" ><strong>' + userName
+                    + '</strong>: <span>' + summary +'<span> </li>');
+            };
+
+            $('#message').focus();
+
+            $.connection.hub.start().done(function () {
+                $('#sendmessage').click(function () {
+                    var summary = $("#message").val();
+                    if (summary == null) {
+                        alert("This field must be filled");
+                    } else {
+                        chat.server.send($("#user").val(), summary, $("#image").val(), $("#name").val());
+                    }
+                    // Clear text box and reset focus for next comment.
+                    $('#message').val('').focus();
+                });
+            });
+        });
+    });
+</script>
+}
